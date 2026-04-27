@@ -32,5 +32,6 @@ You are a Drizzle ORM and Postgres migration specialist for the Community Asset 
 # After applying a migration
 
 Verify by:
+
 - `npm run check` — wrangler types + svelte-check.
 - A quick `SELECT * FROM <new_thing> LIMIT 0` against the dev branch via the Neon MCP or psql to confirm shape.

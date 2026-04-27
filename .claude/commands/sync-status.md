@@ -7,6 +7,7 @@ Report on OSM ↔ Neon sync state.
 Steps:
 
 1. Use the Neon MCP (or `psql` with `$DATABASE_URL` from `.dev.vars`) to run:
+
    ```sql
    SELECT osm_sync_status, count(*)
    FROM asset
@@ -15,6 +16,7 @@ Steps:
    ```
 
 2. Run:
+
    ```sql
    SELECT ref, name, osm_sync_status, osm_last_synced
    FROM asset

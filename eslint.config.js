@@ -12,6 +12,8 @@ const gitignorePath = path.resolve(import.meta.dirname, '.gitignore');
 
 export default defineConfig(
 	includeIgnoreFile(gitignorePath),
+	// Wrangler-generated Worker binding types — not hand-edited.
+	{ ignores: ['worker-configuration.d.ts'] },
 	js.configs.recommended,
 	ts.configs.recommended,
 	svelte.configs.recommended,

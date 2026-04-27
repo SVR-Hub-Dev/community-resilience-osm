@@ -10,12 +10,12 @@ Bullet list of what this plan delivers. Each bullet should map to a file or set 
 
 ## Out of scope
 
-Bullet list of nearby concerns this plan deliberately does *not* tackle. Link to where they live (a future plan, an ADR, an issue).
+Bullet list of nearby concerns this plan deliberately does _not_ tackle. Link to where they live (a future plan, an ADR, an issue).
 
 ## Files touched
 
-| File | Action | Notes |
-| - | - | - |
+| File           | Action              | Notes         |
+| -------------- | ------------------- | ------------- |
 | `path/to/file` | new / edit / delete | one-line note |
 
 ## Approach

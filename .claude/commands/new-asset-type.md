@@ -12,6 +12,7 @@ Do these in order:
 1. **Confirm OSM tag mapping** — invoke the `osm-tagger` subagent to choose the canonical OSM tags that should match this asset type (e.g. `{"amenity":"community_centre"}`). Do not invent tags; use the OSM wiki.
 
 2. **Add the seed row** to the Drizzle seed file (create `src/lib/server/seeds/asset-types.ts` if it does not exist) with shape:
+
    ```ts
    { id, label, osmTags, icon: 'placeholder', inspectionForm: null }
    ```

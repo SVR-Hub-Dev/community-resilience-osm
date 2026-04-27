@@ -16,7 +16,7 @@ You are a Cloudflare Workers compatibility reviewer for the Community Asset Mapp
    // Per-request, inside the handler — not at module top level.
    const db = drizzle(neon(env.DATABASE_URL), { schema });
    ```
-4. **R2 access uses the Worker binding** (`platform.env.PHOTOS_BUCKET`) inside the Worker. The S3 SDK is reserved for code that runs *outside* the Worker (local scripts, external uploaders).
+4. **R2 access uses the Worker binding** (`platform.env.PHOTOS_BUCKET`) inside the Worker. The S3 SDK is reserved for code that runs _outside_ the Worker (local scripts, external uploaders).
 5. **Photos never flow through the Worker response stream.** Generate a presigned R2 URL server-side, return it to the client, let R2 serve the bytes directly.
 6. **`server`-only imports** must stay under `src/lib/server/`. SvelteKit will throw at build time if a client component imports from there, but flag it earlier if you see it.
 7. **Cron-triggered routes** must check a shared secret header (`CRON_SECRET`) before doing any work. Workers does not authenticate cron invocations for you.

@@ -1,16 +1,16 @@
 # Dev Resources
 
-Project context, plans, decisions, and runbooks. The `src/` tree is the *what*; this directory is the *why* and the *next*.
+Project context, plans, decisions, and runbooks. The `src/` tree is the _what_; this directory is the _why_ and the _next_.
 
 ## Layout
 
-| Dir | Contents | Lifecycle |
-| - | - | - |
-| [architecture/](architecture/) | Source-of-truth design docs. The architecture is one document, deliberately stable. | Edited rarely; deviations require an ADR. |
-| [research/](research/) | Background — feasibility studies, prior-art surveys, vendor comparisons. | Append-only; not load-bearing for implementation. |
-| [plans/](plans/) | Phase-scoped implementation plans. One plan = one PR-sized chunk of work. | Written before a phase, archived after it ships. |
-| [decisions/](decisions/) | Architecture Decision Records. Short, dated, immutable once accepted. | Numbered `NNNN-kebab-case-title.md`. Supersede via a new ADR, never edit accepted ones. |
-| [runbooks/](runbooks/) | Operational how-tos: deploy, rotate secrets, run cron locally. | Stable across phases; updated when the underlying procedure changes. |
+| Dir                            | Contents                                                                            | Lifecycle                                                                               |
+| ------------------------------ | ----------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| [architecture/](architecture/) | Source-of-truth design docs. The architecture is one document, deliberately stable. | Edited rarely; deviations require an ADR.                                               |
+| [research/](research/)         | Background — feasibility studies, prior-art surveys, vendor comparisons.            | Append-only; not load-bearing for implementation.                                       |
+| [plans/](plans/)               | Phase-scoped implementation plans. One plan = one PR-sized chunk of work.           | Written before a phase, archived after it ships.                                        |
+| [decisions/](decisions/)       | Architecture Decision Records. Short, dated, immutable once accepted.               | Numbered `NNNN-kebab-case-title.md`. Supersede via a new ADR, never edit accepted ones. |
+| [runbooks/](runbooks/)         | Operational how-tos: deploy, rotate secrets, run cron locally.                      | Stable across phases; updated when the underlying procedure changes.                    |
 
 ## When to write what
 
@@ -18,7 +18,7 @@ Project context, plans, decisions, and runbooks. The `src/` tree is the *what*; 
 - **Choice between viable alternatives that locks something in** → write an ADR using `decisions/_template.md`. ADRs are for decisions a future maintainer would reasonably question ("why Drizzle and not Knex?", "why Neon and not Supabase?").
 - **Repeatable operational procedure** → write a runbook. If you'd write the same instructions twice, it belongs in a runbook.
 - **Background reading or vendor research** → drop in `research/` and link from the relevant ADR or plan.
-- **Source-of-truth design changes** → edit `architecture/` *and* write an ADR explaining the deviation.
+- **Source-of-truth design changes** → edit `architecture/` _and_ write an ADR explaining the deviation.
 
 ## Index
 
@@ -32,7 +32,7 @@ Project context, plans, decisions, and runbooks. The `src/` tree is the *what*; 
 
 ### Plans
 
-*Populated as phases are scoped.*
+_Populated as phases are scoped._
 
 ### Decisions
 
@@ -40,4 +40,4 @@ Project context, plans, decisions, and runbooks. The `src/` tree is the *what*; 
 
 ### Runbooks
 
-*Populated as operational procedures emerge.*
+_Populated as operational procedures emerge._

@@ -1,9 +1,9 @@
 # Community Asset Mapper — Architecture
 
-*A web-based frontend for browsing and managing community-owned assets,
+_A web-based frontend for browsing and managing community-owned assets,
 using OpenStreetMap as the public geographic commons and a private
 Neon Postgres + PostGIS store for operational data, with Cloudflare R2
-for photo blobs.*
+for photo blobs._
 
 ---
 
@@ -190,7 +190,7 @@ layer**. Postgres Row-Level Security is intentionally not used:
   the data the server reads to make those decisions; the server does not
   trust the client to do the filtering.
 - The auth provider itself (Auth.js / Lucia / a custom JWT implementation)
-  is **TBD**. The architecture only commits to the *placement* of the
+  is **TBD**. The architecture only commits to the _placement_ of the
   check, not the identity of the provider.
 
 If RLS is later introduced for defence-in-depth, it would use a per-request
@@ -201,7 +201,7 @@ hook, with policies reading those session variables via `current_setting()`.
 
 These are plain Postgres functions. They are invoked from SvelteKit server
 routes via Drizzle's `sql` template (e.g.
-`db.execute(sql\`SELECT * FROM assets_in_bbox(${w}, ${s}, ${e}, ${n}, ${incl})\`)`)
+`db.execute(sql\`SELECT \* FROM assets_in_bbox(${w}, ${s}, ${e}, ${n}, ${incl})\`)`)
 rather than via a client SDK. Because access decisions happen in the server
 layer, sensitivity filtering is passed in as a parameter — the function
 does not consult any auth context.
@@ -301,8 +301,8 @@ $$;
 const OVERPASS_URL = 'https://overpass-api.de/api/interpreter';
 
 export async function fetchCommunityAssets(bbox) {
-  const [south, west, north, east] = bbox;
-  const query = `
+	const [south, west, north, east] = bbox;
+	const query = `
     [out:json][timeout:30];
     (
       // Physical community infrastructure
@@ -322,19 +322,19 @@ export async function fetchCommunityAssets(bbox) {
     out center tags;
   `;
 
-  const res = await fetch(OVERPASS_URL, {
-    method: 'POST',
-    body: `data=${encodeURIComponent(query)}`
-  });
-  const data = await res.json();
+	const res = await fetch(OVERPASS_URL, {
+		method: 'POST',
+		body: `data=${encodeURIComponent(query)}`
+	});
+	const data = await res.json();
 
-  return data.elements.map(el => ({
-    osmId: `${el.type[0]}${el.id}`,          // e.g. 'n12345678'
-    lat: el.center?.lat ?? el.lat,
-    lon: el.center?.lon ?? el.lon,
-    tags: el.tags ?? {},
-    ref: el.tags?.['ref:community_asset'] ?? null
-  }));
+	return data.elements.map((el) => ({
+		osmId: `${el.type[0]}${el.id}`, // e.g. 'n12345678'
+		lat: el.center?.lat ?? el.lat,
+		lon: el.center?.lon ?? el.lon,
+		tags: el.tags ?? {},
+		ref: el.tags?.['ref:community_asset'] ?? null
+	}));
 }
 ```
 
@@ -496,102 +496,100 @@ import { error } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ params }) => {
-  const result = await db.execute(
-    sql`SELECT asset_detail(${params.ref}) AS detail`
-  );
-  const detail = result[0]?.detail;
+	const result = await db.execute(sql`SELECT asset_detail(${params.ref}) AS detail`);
+	const detail = result[0]?.detail;
 
-  if (!detail?.asset) throw error(404, 'Asset not found');
+	if (!detail?.asset) throw error(404, 'Asset not found');
 
-  return {
-    asset: detail.asset,
-    latestInspection: detail.latest_inspection,
-    inspections: detail.inspections ?? [],
-    contacts: detail.contacts ?? [],
-    photos: detail.photos ?? []
-  };
+	return {
+		asset: detail.asset,
+		latestInspection: detail.latest_inspection,
+		inspections: detail.inspections ?? [],
+		contacts: detail.contacts ?? [],
+		photos: detail.photos ?? []
+	};
 };
 ```
 
 ```svelte
 <!-- src/routes/asset/[ref]/+page.svelte (simplified) -->
 <script lang="ts">
-  import InspectionHistory from '$lib/components/asset/InspectionHistory.svelte';
-  import PhotoGallery from '$lib/components/asset/PhotoGallery.svelte';
-  import type { PageData } from './$types';
+	import InspectionHistory from '$lib/components/asset/InspectionHistory.svelte';
+	import PhotoGallery from '$lib/components/asset/PhotoGallery.svelte';
+	import type { PageData } from './$types';
 
-  // `data` comes from the +page.server.ts load function above.
-  // `osmTags` is supplied by the parent (Overpass-sourced), or null.
-  let { data, osmTags = null }: { data: PageData; osmTags?: Record<string, string> | null } =
-    $props();
+	// `data` comes from the +page.server.ts load function above.
+	// `osmTags` is supplied by the parent (Overpass-sourced), or null.
+	let { data, osmTags = null }: { data: PageData; osmTags?: Record<string, string> | null } =
+		$props();
 </script>
 
 <div class="panel">
-  <h2>{data.asset.name}</h2>
+	<h2>{data.asset.name}</h2>
 
-  <!-- OSM-sourced attributes (read-only, canonical) -->
-  {#if osmTags}
-    <section class="osm-attributes">
-      <h3>Public Record (from OpenStreetMap)</h3>
-      <dl>
-        <dt>Type</dt>
-        <dd>{osmTags.amenity ?? osmTags.emergency ?? osmTags.man_made}</dd>
-        <dt>Operator</dt>
-        <dd>{osmTags.operator ?? '—'}</dd>
-        <dt>Address</dt>
-        <dd>{osmTags['addr:street'] ?? '—'}</dd>
-        <dt>Phone</dt>
-        <dd>{osmTags.phone ?? '—'}</dd>
-        <dt>Website</dt>
-        <dd>{osmTags.website ?? '—'}</dd>
-      </dl>
-      {#if data.asset.osm_element}
-        <a
-          href="https://www.openstreetmap.org/{data.asset.osm_element.replace(
-            /^(n|w|r)/,
-            (m) => ({ n: 'node/', w: 'way/', r: 'relation/' })[m]
-          )}"
-          target="_blank"
-          rel="noopener"
-        >
-          View/edit on OSM →
-        </a>
-      {/if}
-    </section>
-  {/if}
+	<!-- OSM-sourced attributes (read-only, canonical) -->
+	{#if osmTags}
+		<section class="osm-attributes">
+			<h3>Public Record (from OpenStreetMap)</h3>
+			<dl>
+				<dt>Type</dt>
+				<dd>{osmTags.amenity ?? osmTags.emergency ?? osmTags.man_made}</dd>
+				<dt>Operator</dt>
+				<dd>{osmTags.operator ?? '—'}</dd>
+				<dt>Address</dt>
+				<dd>{osmTags['addr:street'] ?? '—'}</dd>
+				<dt>Phone</dt>
+				<dd>{osmTags.phone ?? '—'}</dd>
+				<dt>Website</dt>
+				<dd>{osmTags.website ?? '—'}</dd>
+			</dl>
+			{#if data.asset.osm_element}
+				<a
+					href="https://www.openstreetmap.org/{data.asset.osm_element.replace(
+						/^(n|w|r)/,
+						(m) => ({ n: 'node/', w: 'way/', r: 'relation/' })[m]
+					)}"
+					target="_blank"
+					rel="noopener"
+				>
+					View/edit on OSM →
+				</a>
+			{/if}
+		</section>
+	{/if}
 
-  <!-- Neon-sourced attributes (editable, private) -->
-  <section class="local-attributes">
-    <h3>Community Record</h3>
-    <dl>
-      <dt>Condition</dt>
-      <dd class="condition-{data.asset.condition ?? 'unknown'}">
-        {data.asset.condition ?? 'unknown'}
-      </dd>
-      <dt>Last inspected</dt>
-      <dd>{data.asset.condition_date ?? 'never'}</dd>
-      <dt>Access notes</dt>
-      <dd>{data.asset.access_notes ?? '—'}</dd>
-      <dt>Council ref</dt>
-      <dd>{data.asset.council_ref ?? '—'}</dd>
-    </dl>
-  </section>
+	<!-- Neon-sourced attributes (editable, private) -->
+	<section class="local-attributes">
+		<h3>Community Record</h3>
+		<dl>
+			<dt>Condition</dt>
+			<dd class="condition-{data.asset.condition ?? 'unknown'}">
+				{data.asset.condition ?? 'unknown'}
+			</dd>
+			<dt>Last inspected</dt>
+			<dd>{data.asset.condition_date ?? 'never'}</dd>
+			<dt>Access notes</dt>
+			<dd>{data.asset.access_notes ?? '—'}</dd>
+			<dt>Council ref</dt>
+			<dd>{data.asset.council_ref ?? '—'}</dd>
+		</dl>
+	</section>
 
-  <!-- Contacts (server already filtered by role / public flag) -->
-  {#if data.contacts.length}
-    <section class="contacts">
-      <h3>Contacts</h3>
-      {#each data.contacts as c (c.id)}
-        <div>{c.role}: {c.name} — {c.phone}</div>
-      {/each}
-    </section>
-  {/if}
+	<!-- Contacts (server already filtered by role / public flag) -->
+	{#if data.contacts.length}
+		<section class="contacts">
+			<h3>Contacts</h3>
+			{#each data.contacts as c (c.id)}
+				<div>{c.role}: {c.name} — {c.phone}</div>
+			{/each}
+		</section>
+	{/if}
 
-  <!-- Inspection history -->
-  <InspectionHistory assetRef={data.asset.ref} />
+	<!-- Inspection history -->
+	<InspectionHistory assetRef={data.asset.ref} />
 
-  <!-- Photos (signed R2 URLs generated server-side) -->
-  <PhotoGallery photos={data.photos} />
+	<!-- Photos (signed R2 URLs generated server-side) -->
+	<PhotoGallery photos={data.photos} />
 </div>
 ```
 
@@ -615,21 +613,21 @@ import { db } from '$lib/server/db';
 import type { RequestHandler } from './$types';
 
 export const GET: RequestHandler = async ({ url, locals }) => {
-  const w = Number(url.searchParams.get('w'));
-  const s = Number(url.searchParams.get('s'));
-  const e = Number(url.searchParams.get('e'));
-  const n = Number(url.searchParams.get('n'));
-  if ([w, s, e, n].some(Number.isNaN)) throw error(400, 'bad bbox');
+	const w = Number(url.searchParams.get('w'));
+	const s = Number(url.searchParams.get('s'));
+	const e = Number(url.searchParams.get('e'));
+	const n = Number(url.searchParams.get('n'));
+	if ([w, s, e, n].some(Number.isNaN)) throw error(400, 'bad bbox');
 
-  // `locals.user` is populated by the auth handle hook (TBD).
-  // Until auth lands, sensitive assets are excluded from API responses.
-  const includeSensitive = locals.user?.role === 'editor' || locals.user?.role === 'admin';
+	// `locals.user` is populated by the auth handle hook (TBD).
+	// Until auth lands, sensitive assets are excluded from API responses.
+	const includeSensitive = locals.user?.role === 'editor' || locals.user?.role === 'admin';
 
-  const rows = await db.execute(
-    sql`SELECT * FROM assets_in_bbox(${w}, ${s}, ${e}, ${n}, ${includeSensitive})`
-  );
+	const rows = await db.execute(
+		sql`SELECT * FROM assets_in_bbox(${w}, ${s}, ${e}, ${n}, ${includeSensitive})`
+	);
 
-  return json(rows);
+	return json(rows);
 };
 ```
 
@@ -638,77 +636,86 @@ export const GET: RequestHandler = async ({ url, locals }) => {
 import maplibregl from 'maplibre-gl';
 
 const map = new maplibregl.Map({
-  container: 'map',
-  style: {
-    version: 8,
-    sources: {
-      // Option A: OSM raster tiles (simplest, free)
-      osm: {
-        type: 'raster',
-        tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
-        tileSize: 256,
-        attribution: '© OpenStreetMap contributors'
-      }
-      // Option B: PMTiles vector tiles (better UX, self-hosted)
-      // protomaps: {
-      //   type: 'vector',
-      //   url: 'pmtiles://https://your-cdn.com/australia.pmtiles'
-      // }
-    },
-    layers: [{ id: 'osm', type: 'raster', source: 'osm' }]
-  },
-  center: [152.48, -31.92],  // Tinonee area
-  zoom: 13
+	container: 'map',
+	style: {
+		version: 8,
+		sources: {
+			// Option A: OSM raster tiles (simplest, free)
+			osm: {
+				type: 'raster',
+				tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
+				tileSize: 256,
+				attribution: '© OpenStreetMap contributors'
+			}
+			// Option B: PMTiles vector tiles (better UX, self-hosted)
+			// protomaps: {
+			//   type: 'vector',
+			//   url: 'pmtiles://https://your-cdn.com/australia.pmtiles'
+			// }
+		},
+		layers: [{ id: 'osm', type: 'raster', source: 'osm' }]
+	},
+	center: [152.48, -31.92], // Tinonee area
+	zoom: 13
 });
 
 // Fetch asset points as GeoJSON via the server endpoint (which talks to Neon)
 map.on('load', async () => {
-  const bbox = map.getBounds();
-  const params = new URLSearchParams({
-    w: String(bbox.getWest()),
-    s: String(bbox.getSouth()),
-    e: String(bbox.getEast()),
-    n: String(bbox.getNorth())
-  });
-  const res = await fetch(`/api/assets/bbox?${params}`);
-  const rows = await res.json();
+	const bbox = map.getBounds();
+	const params = new URLSearchParams({
+		w: String(bbox.getWest()),
+		s: String(bbox.getSouth()),
+		e: String(bbox.getEast()),
+		n: String(bbox.getNorth())
+	});
+	const res = await fetch(`/api/assets/bbox?${params}`);
+	const rows = await res.json();
 
-  map.addSource('assets', {
-    type: 'geojson',
-    data: toGeoJSON(rows),
-    cluster: true,
-    clusterMaxZoom: 14,
-    clusterRadius: 50
-  });
+	map.addSource('assets', {
+		type: 'geojson',
+		data: toGeoJSON(rows),
+		cluster: true,
+		clusterMaxZoom: 14,
+		clusterRadius: 50
+	});
 
-  // Clustered circles
-  map.addLayer({
-    id: 'clusters', type: 'circle', source: 'assets',
-    filter: ['has', 'point_count'],
-    paint: {
-      'circle-color': '#4a90d9',
-      'circle-radius': ['step', ['get', 'point_count'], 20, 10, 30, 50, 40]
-    }
-  });
+	// Clustered circles
+	map.addLayer({
+		id: 'clusters',
+		type: 'circle',
+		source: 'assets',
+		filter: ['has', 'point_count'],
+		paint: {
+			'circle-color': '#4a90d9',
+			'circle-radius': ['step', ['get', 'point_count'], 20, 10, 30, 50, 40]
+		}
+	});
 
-  // Individual markers with condition-based colouring
-  map.addLayer({
-    id: 'asset-points', type: 'circle', source: 'assets',
-    filter: ['!', ['has', 'point_count']],
-    paint: {
-      'circle-color': [
-        'match', ['get', 'condition'],
-        'good',     '#22c55e',
-        'fair',     '#eab308',
-        'poor',     '#f97316',
-        'critical', '#ef4444',
-        '#94a3b8'  // unknown/default
-      ],
-      'circle-radius': 8,
-      'circle-stroke-width': 2,
-      'circle-stroke-color': '#ffffff'
-    }
-  });
+	// Individual markers with condition-based colouring
+	map.addLayer({
+		id: 'asset-points',
+		type: 'circle',
+		source: 'assets',
+		filter: ['!', ['has', 'point_count']],
+		paint: {
+			'circle-color': [
+				'match',
+				['get', 'condition'],
+				'good',
+				'#22c55e',
+				'fair',
+				'#eab308',
+				'poor',
+				'#f97316',
+				'critical',
+				'#ef4444',
+				'#94a3b8' // unknown/default
+			],
+			'circle-radius': 8,
+			'circle-stroke-width': 2,
+			'circle-stroke-color': '#ffffff'
+		}
+	});
 });
 ```
 
@@ -718,24 +725,24 @@ map.on('load', async () => {
 
 ### 6.1 Inspection form design (XLSForm)
 
-| type       | name            | label                        | required | appearance   |
-| ---------- | --------------- | ---------------------------- | -------- | ------------ |
-| barcode    | asset_ref       | Scan asset QR code           | yes      |              |
-| select_one | condition       | Overall condition            | yes      | likert       |
-| text       | notes           | Notes                        | no       | multiline    |
-| image      | photo_1         | Photo — front                | no       |              |
-| image      | photo_2         | Photo — defect               | no       |              |
-| geopoint   | location        | GPS location (auto-captured) | yes      |              |
-| dateTime   | inspected_at    | Inspection date/time         | yes      |              |
+| type       | name         | label                        | required | appearance |
+| ---------- | ------------ | ---------------------------- | -------- | ---------- |
+| barcode    | asset_ref    | Scan asset QR code           | yes      |            |
+| select_one | condition    | Overall condition            | yes      | likert     |
+| text       | notes        | Notes                        | no       | multiline  |
+| image      | photo_1      | Photo — front                | no       |            |
+| image      | photo_2      | Photo — defect               | no       |            |
+| geopoint   | location     | GPS location (auto-captured) | yes      |            |
+| dateTime   | inspected_at | Inspection date/time         | yes      |            |
 
 choices:
 
-| list_name  | name     | label    |
-| ---------- | -------- | -------- |
-| condition  | good     | Good     |
-| condition  | fair     | Fair     |
-| condition  | poor     | Poor     |
-| condition  | critical | Critical |
+| list_name | name     | label    |
+| --------- | -------- | -------- |
+| condition | good     | Good     |
+| condition | fair     | Fair     |
+| condition | poor     | Poor     |
+| condition | critical | Critical |
 
 ### 6.2 Webhook bridge (SvelteKit API route)
 
@@ -768,67 +775,67 @@ import { env } from '$env/dynamic/private';
 import type { RequestHandler } from './$types';
 
 export const POST: RequestHandler = async ({ request, platform }) => {
-  // Authenticate the webhook caller
-  if (request.headers.get('x-kobo-secret') !== env.KOBO_WEBHOOK_SECRET) {
-    throw error(401, 'unauthorised');
-  }
+	// Authenticate the webhook caller
+	if (request.headers.get('x-kobo-secret') !== env.KOBO_WEBHOOK_SECRET) {
+		throw error(401, 'unauthorised');
+	}
 
-  const submission = await request.json();
-  const assetRef = submission.asset_ref;
-  const condition = submission.condition;
+	const submission = await request.json();
+	const assetRef = submission.asset_ref;
+	const condition = submission.condition;
 
-  // 1. Insert inspection record
-  const [insp] = await db
-    .insert(inspection)
-    .values({
-      assetRef,
-      inspectedAt: submission.inspected_at,
-      inspector: submission._submitted_by ?? 'anonymous',
-      condition,
-      notes: submission.notes,
-      koboSubmission: submission._uuid
-    })
-    .returning();
+	// 1. Insert inspection record
+	const [insp] = await db
+		.insert(inspection)
+		.values({
+			assetRef,
+			inspectedAt: submission.inspected_at,
+			inspector: submission._submitted_by ?? 'anonymous',
+			condition,
+			notes: submission.notes,
+			koboSubmission: submission._uuid
+		})
+		.returning();
 
-  // 2. Update asset condition
-  await db
-    .update(asset)
-    .set({
-      condition,
-      conditionDate: submission.inspected_at,
-      updatedAt: new Date()
-    })
-    .where(eq(asset.ref, assetRef));
+	// 2. Update asset condition
+	await db
+		.update(asset)
+		.set({
+			condition,
+			conditionDate: submission.inspected_at,
+			updatedAt: new Date()
+		})
+		.where(eq(asset.ref, assetRef));
 
-  // 3. Stream each Kobo photo into R2, then record it in `photo`
-  const bucket = platform!.env.PHOTOS_BUCKET; // R2Bucket binding
-  for (const key of ['photo_1', 'photo_2']) {
-    if (!submission[key]) continue;
+	// 3. Stream each Kobo photo into R2, then record it in `photo`
+	const bucket = platform!.env.PHOTOS_BUCKET; // R2Bucket binding
+	for (const key of ['photo_1', 'photo_2']) {
+		if (!submission[key]) continue;
 
-    const photoUrl = submission._attachments?.find(
-      (a: { filename?: string }) => a.filename?.includes(submission[key])
-    )?.download_url;
-    if (!photoUrl) continue;
+		const photoUrl = submission._attachments?.find((a: { filename?: string }) =>
+			a.filename?.includes(submission[key])
+		)?.download_url;
+		if (!photoUrl) continue;
 
-    const photoRes = await fetch(photoUrl, {
-      headers: { Authorization: `Token ${env.KOBO_API_TOKEN}` }
-    });
-    if (!photoRes.ok) continue;
+		const photoRes = await fetch(photoUrl, {
+			headers: { Authorization: `Token ${env.KOBO_API_TOKEN}` }
+		});
+		if (!photoRes.ok) continue;
 
-    const objectKey = `inspections/${insp.id}/${key}.jpg`;
-    await bucket.put(objectKey, photoRes.body, {
-      httpMetadata: { contentType: 'image/jpeg' }
-    });
+		const objectKey = `inspections/${insp.id}/${key}.jpg`;
+		await bucket.put(objectKey, photoRes.body, {
+			httpMetadata: { contentType: 'image/jpeg' }
+		});
 
-    await db.insert(photo).values({
-      assetRef,
-      inspectionId: insp.id,
-      storagePath: objectKey,
-      takenAt: submission.inspected_at
-    });
-  }
+		await db.insert(photo).values({
+			assetRef,
+			inspectionId: insp.id,
+			storagePath: objectKey,
+			takenAt: submission.inspected_at
+		});
+	}
 
-  return json({ ok: true, inspection_id: insp.id });
+	return json({ ok: true, inspection_id: insp.id });
 };
 ```
 
@@ -1010,18 +1017,18 @@ before adding `ref:community_asset` tags to any features.
 
 ### Tag schema
 
-| Tag                         | Example                    | Purpose                       |
-| --------------------------- | -------------------------- | ----------------------------- |
-| `ref:community_asset`       | `MVC-0042`                 | Stable FK to local register   |
-| `amenity`                   | `community_centre`         | Standard OSM feature type     |
-| `operator`                  | `Tinonee Community Inc.`   | Who runs it                   |
-| `operator:type`             | `community`                | Ownership category            |
-| `community_centre`          | `village_hall`             | Subtype for community centres |
-| `community_centre:for`      | `senior;youth`             | Target groups                 |
-| `emergency`                 | `water_tank`               | Emergency asset type          |
-| `capacity`                  | `10000`                    | Tank capacity in litres       |
-| `phone`                     | `+61 2 6553 XXXX`          | Public contact only           |
-| `website`                   | `https://tinonee.org.au`   | Public website only           |
+| Tag                    | Example                  | Purpose                       |
+| ---------------------- | ------------------------ | ----------------------------- |
+| `ref:community_asset`  | `MVC-0042`               | Stable FK to local register   |
+| `amenity`              | `community_centre`       | Standard OSM feature type     |
+| `operator`             | `Tinonee Community Inc.` | Who runs it                   |
+| `operator:type`        | `community`              | Ownership category            |
+| `community_centre`     | `village_hall`           | Subtype for community centres |
+| `community_centre:for` | `senior;youth`           | Target groups                 |
+| `emergency`            | `water_tank`             | Emergency asset type          |
+| `capacity`             | `10000`                  | Tank capacity in litres       |
+| `phone`                | `+61 2 6553 XXXX`        | Public contact only           |
+| `website`              | `https://tinonee.org.au` | Public website only           |
 
 ### What NOT to tag in OSM
 
