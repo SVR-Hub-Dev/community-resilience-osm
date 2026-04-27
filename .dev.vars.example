@@ -12,3 +12,12 @@ KOBO_WEBHOOK_SECRET=
 
 # Shared secret the Cloudflare Cron Trigger sends when invoking /api/cron/sync-osm
 CRON_SECRET=
+
+# Cloudflare R2 S3-compatible credentials (see architecture §8.2).
+# Used by `getPresignedPhotoUrl` to sign short-lived GET URLs against
+# https://<R2_ACCOUNT_ID>.r2.cloudflarestorage.com — the binding itself
+# (PHOTOS_BUCKET) needs no credentials. Generate via:
+# Cloudflare dashboard → R2 → Manage R2 API Tokens → Create token (Object Read & Write).
+R2_ACCOUNT_ID=
+R2_ACCESS_KEY_ID=
+R2_SECRET_ACCESS_KEY=

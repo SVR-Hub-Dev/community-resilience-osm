@@ -95,6 +95,10 @@ npm run db:seed
 
 `db:push` is available for rapid iteration in development, but `db:migrate` against committed migration files is the standard path. See [dev-resources/plans/02-data-layer.md](dev-resources/plans/02-data-layer.md) for context.
 
+### Photo storage (R2)
+
+In the Cloudflare dashboard create an R2 bucket named `photos`, then mint an R2 API token (**R2 → Manage R2 API Tokens → Create token**, scope: Object Read & Write) and paste `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, and `R2_SECRET_ACCESS_KEY` into `.dev.vars`. Writes go through the `PHOTOS_BUCKET` binding (no credentials needed); presigned read URLs are signed against the R2 S3 endpoint and require those three values. `wrangler dev` uses a local R2 simulator for binding writes — but presigned reads always hit the real bucket. See [dev-resources/architecture/community-asset-mapper-architecture.md](dev-resources/architecture/community-asset-mapper-architecture.md) §8.
+
 ## Data discipline
 
 These rules are non-negotiable:
