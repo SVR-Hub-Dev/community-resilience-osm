@@ -1,6 +1,7 @@
 {
 	"$schema": "./node_modules/wrangler/config-schema.json",
 	"name": "community-resilience-osm",
+	"account_id": "420c189c9e791bb5a25ed65c3f8843f9",
 	"compatibility_date": "2026-04-27",
 	"compatibility_flags": ["nodejs_als"],
 	"main": ".svelte-kit/cloudflare/_worker.js",

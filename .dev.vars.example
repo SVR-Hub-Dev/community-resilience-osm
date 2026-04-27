@@ -1,0 +1,14 @@
+# Copy to .dev.vars (gitignored) and fill in real values for `wrangler dev`.
+# Production values are set with `npx wrangler secret put <NAME>`.
+
+# Pooled Neon connection string (see architecture §7.4)
+DATABASE_URL=postgresql://USER:PASSWORD@ep-xxxx-pooler.REGION.aws.neon.tech/community_asset_mapper?sslmode=require
+
+# KoboToolbox API token — used by the webhook handler to fetch attachments
+KOBO_API_TOKEN=
+
+# Shared secret Kobo includes in the webhook header (x-kobo-secret)
+KOBO_WEBHOOK_SECRET=
+
+# Shared secret the Cloudflare Cron Trigger sends when invoking /api/cron/sync-osm
+CRON_SECRET=

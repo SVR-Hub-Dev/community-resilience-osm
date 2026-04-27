@@ -3,6 +3,26 @@
 		"svelte": {
 			"type": "http",
 			"url": "https://mcp.svelte.dev/mcp"
+		},
+		"context7": {
+			"command": "npx",
+			"args": ["-y", "@upstash/context7-mcp"]
+		},
+		"playwright": {
+			"command": "npx",
+			"args": ["-y", "@playwright/mcp@latest"]
+		},
+		"neon": {
+			"type": "http",
+			"url": "https://mcp.neon.tech/mcp"
+		},
+		"cloudflare-workers-bindings": {
+			"type": "sse",
+			"url": "https://bindings.mcp.cloudflare.com/sse"
+		},
+		"cloudflare-workers-observability": {
+			"type": "sse",
+			"url": "https://observability.mcp.cloudflare.com/sse"
 		}
 	}
 }
