@@ -17,7 +17,7 @@
 ## Out of scope
 
 - R2 binding in [wrangler.jsonc](../../wrangler.jsonc) and `src/lib/server/r2.ts` — `03-photos.md`.
-- Any `+server.ts` route or `+page.server.ts` load that *uses* the schema (bbox endpoint, `/asset/[ref]`) — `04-map-ui.md` and a later plan.
+- Any `+server.ts` route or `+page.server.ts` load that _uses_ the schema (bbox endpoint, `/asset/[ref]`) — `04-map-ui.md` and a later plan.
 - Cron trigger and `/api/cron/sync-osm/+server.ts` — `05-osm-sync.md`. The `osm_sync_status` and `osm_last_synced` columns land here, but nothing populates them yet.
 - Kobo webhook handler — its own plan; only the `inspection` and `photo` tables need to exist for it.
 - Auth (`is_sensitive` filtering by role, `locals.user`) — deferred per architecture §3.2; ADR pending.
@@ -26,26 +26,26 @@
 
 ## Files touched
 
-| File | Action | Notes |
-| - | - | - |
-| `src/lib/server/schema.ts` | new | Drizzle tables: `assetType`, `asset`, `inspection`, `photo`, `assetContact`. No `geom` column here — added via raw SQL migration |
-| `src/lib/server/db.ts` | edit | `import * as schema from './schema'`; pass `{ schema }` to `drizzle()` so the typed query API is available |
-| `src/lib/server/seed.ts` | new | tsx-runnable script; uses `getDb({ DATABASE_URL: process.env.DATABASE_URL! })`. Upserts `asset_type` rows via `onConflictDoUpdate` |
-| `drizzle/0000_<name>.sql` | new (generated) | Output of `drizzle-kit generate` — the four non-spatial tables + indexes + check constraints |
-| `drizzle/0001_postgis.sql` | new (custom) | `drizzle-kit generate --custom --name postgis`; hand-edited to add extension, `geom` column, GIST index, `osm_sync_status`, `osm_last_synced`. Header comment explains *why* it's raw |
-| `drizzle/0002_functions.sql` | new (custom) | `drizzle-kit generate --custom --name functions`; hand-edited to contain the three §3.3 `CREATE OR REPLACE FUNCTION` bodies verbatim |
-| `drizzle/meta/_journal.json` | edit (auto) | Updated by `drizzle-kit generate` for each of the three migrations above |
-| `package.json` | edit | Add `tsx` to devDeps; add `db:generate` / `db:migrate` / `db:push` / `db:seed` scripts |
-| `package-lock.json` | edit | Regenerated |
-| `README.md` | edit | Append "Database setup" paragraph (3–5 lines). Carries over the README follow-up from plan 01 |
+| File                         | Action          | Notes                                                                                                                                                                                 |
+| ---------------------------- | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `src/lib/server/schema.ts`   | new             | Drizzle tables: `assetType`, `asset`, `inspection`, `photo`, `assetContact`. No `geom` column here — added via raw SQL migration                                                      |
+| `src/lib/server/db.ts`       | edit            | `import * as schema from './schema'`; pass `{ schema }` to `drizzle()` so the typed query API is available                                                                            |
+| `src/lib/server/seed.ts`     | new             | tsx-runnable script; uses `getDb({ DATABASE_URL: process.env.DATABASE_URL! })`. Upserts `asset_type` rows via `onConflictDoUpdate`                                                    |
+| `drizzle/0000_<name>.sql`    | new (generated) | Output of `drizzle-kit generate` — the four non-spatial tables + indexes + check constraints                                                                                          |
+| `drizzle/0001_postgis.sql`   | new (custom)    | `drizzle-kit generate --custom --name postgis`; hand-edited to add extension, `geom` column, GIST index, `osm_sync_status`, `osm_last_synced`. Header comment explains _why_ it's raw |
+| `drizzle/0002_functions.sql` | new (custom)    | `drizzle-kit generate --custom --name functions`; hand-edited to contain the three §3.3 `CREATE OR REPLACE FUNCTION` bodies verbatim                                                  |
+| `drizzle/meta/_journal.json` | edit (auto)     | Updated by `drizzle-kit generate` for each of the three migrations above                                                                                                              |
+| `package.json`               | edit            | Add `tsx` to devDeps; add `db:generate` / `db:migrate` / `db:push` / `db:seed` scripts                                                                                                |
+| `package-lock.json`          | edit            | Regenerated                                                                                                                                                                           |
+| `README.md`                  | edit            | Append "Database setup" paragraph (3–5 lines). Carries over the README follow-up from plan 01                                                                                         |
 
 ## Approach
 
-**Why the geom column is split out.** Drizzle's `pg-core` does not have first-class PostGIS types; the workarounds (custom types, raw SQL columns inside `pgTable`) muddy the schema and round-trip poorly through `drizzle-kit generate`. The architecture is explicit: "PostGIS columns and GIST indexes use raw SQL migrations with a comment explaining why." `schema.ts` therefore declares `asset` *without* `geom`, and `0001_postgis.sql` adds `geom`, the GIST index, and the §4.2 sync columns. Server code that needs spatial filtering goes through the §3.3 stored functions (`assets_in_bbox`, etc.), which is the architecture's intended path anyway — Drizzle is for the relational columns; PostGIS is reached via `db.execute(sql\`...\`)`.
+**Why the geom column is split out.** Drizzle's `pg-core` does not have first-class PostGIS types; the workarounds (custom types, raw SQL columns inside `pgTable`) muddy the schema and round-trip poorly through `drizzle-kit generate`. The architecture is explicit: "PostGIS columns and GIST indexes use raw SQL migrations with a comment explaining why." `schema.ts` therefore declares `asset` _without_ `geom`, and `0001_postgis.sql` adds `geom`, the GIST index, and the §4.2 sync columns. Server code that needs spatial filtering goes through the §3.3 stored functions (`assets_in_bbox`, etc.), which is the architecture's intended path anyway — Drizzle is for the relational columns; PostGIS is reached via `db.execute(sql\`...\`)`.
 
 **Custom migrations vs. numbered raw files.** Earlier drafts considered dropping `0001_postgis.sql` into `drizzle/` by hand. That breaks `drizzle/meta/_journal.json` — the next `drizzle-kit generate` would skip the file or renumber on top of it. Using `drizzle-kit generate --custom --name postgis` creates a properly-journaled migration with an empty body that we then fill in. Same for `--name functions`.
 
-**CHECK constraints.** Drizzle 0.30+ supports `check('condition_check', sql\`condition IN ('good','fair','poor','critical','unknown')\`)` inside the table builder's third argument. Asset and inspection have *different* allowed sets (asset adds `'unknown'`); preserve the distinction.
+**CHECK constraints.** Drizzle 0.30+ supports `check('condition_check', sql\`condition IN ('good','fair','poor','critical','unknown')\`)`inside the table builder's third argument. Asset and inspection have *different* allowed sets (asset adds`'unknown'`); preserve the distinction.
 
 **Foreign keys.** `asset.assetTypeId` references `asset_type(id)`; `inspection.assetRef`, `photo.assetRef`, `assetContact.assetRef` reference `asset(ref)`; `photo.inspectionId` references `inspection(id)`. Default `onDelete` behaviour is `no action`, which matches the architecture's silence on cascades — explicit follow-up if we want `on delete cascade` for photos when an inspection is deleted.
 

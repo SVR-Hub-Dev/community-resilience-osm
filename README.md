@@ -58,21 +58,42 @@ npm run dev -- --open    # ...and open the browser
 
 Other scripts:
 
-| Command | Purpose |
-| --- | --- |
-| `npm run build` | `wrangler types --check && vite build` — produces the Worker bundle. |
-| `npm run preview` | Serves the built Worker locally via `wrangler dev`. |
-| `npm run check` | Wrangler types + svelte-check. |
-| `npm run lint` | Prettier + ESLint. |
-| `npm run test` | Vitest (unit + component via `vitest-browser-svelte`). |
-| `npm run format` | Prettier write. |
-| `npm run gen` | Regenerate Worker binding types from `wrangler.jsonc`. |
+| Command           | Purpose                                                              |
+| ----------------- | -------------------------------------------------------------------- |
+| `npm run build`   | `wrangler types --check && vite build` — produces the Worker bundle. |
+| `npm run preview` | Serves the built Worker locally via `wrangler dev`.                  |
+| `npm run check`   | Wrangler types + svelte-check.                                       |
+| `npm run lint`    | Prettier + ESLint.                                                   |
+| `npm run test`    | Vitest (unit + component via `vitest-browser-svelte`).               |
+| `npm run format`  | Prettier write.                                                      |
+| `npm run gen`     | Regenerate Worker binding types from `wrangler.jsonc`.               |
 
 End-to-end map interactions are exercised with `npx playwright test`.
 
 ### Environment
 
 Server-side secrets (Neon connection string, Kobo webhook secret) come from `$env/dynamic/private` in server modules. Worker bindings (R2 bucket, future KV / Durable Objects) come from `platform.env.*`. The Neon `DATABASE_URL` must never reach the client bundle — `src/lib/server/` enforces this at build time.
+
+### Database setup
+
+```sh
+cp .dev.vars.example .dev.vars   # then fill in DATABASE_URL pointing at your Neon dev branch
+```
+
+Once in the [Neon SQL Editor](https://console.neon.tech), enable PostGIS on the target branch:
+
+```sql
+CREATE EXTENSION IF NOT EXISTS postgis;
+```
+
+Then apply migrations and seed the `asset_type` rows:
+
+```sh
+npm run db:migrate
+npm run db:seed
+```
+
+`db:push` is available for rapid iteration in development, but `db:migrate` against committed migration files is the standard path. See [dev-resources/plans/02-data-layer.md](dev-resources/plans/02-data-layer.md) for context.
 
 ## Data discipline
 

@@ -1,0 +1,454 @@
+{
+  "id": "0977f758-5bf7-468b-879d-0730605e078a",
+  "prevId": "d11b500f-34c1-41fc-a70e-acd7f359936f",
+  "version": "7",
+  "dialect": "postgresql",
+  "tables": {
+    "public.asset": {
+      "name": "asset",
+      "schema": "",
+      "columns": {
+        "ref": {
+          "name": "ref",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "asset_type_id": {
+          "name": "asset_type_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "description": {
+          "name": "description",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "osm_element": {
+          "name": "osm_element",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "osm_lat": {
+          "name": "osm_lat",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "osm_lon": {
+          "name": "osm_lon",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "owner": {
+          "name": "owner",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "operator_contact": {
+          "name": "operator_contact",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "condition": {
+          "name": "condition",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "condition_date": {
+          "name": "condition_date",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "access_notes": {
+          "name": "access_notes",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "council_ref": {
+          "name": "council_ref",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "is_sensitive": {
+          "name": "is_sensitive",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false,
+          "default": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "idx_asset_type": {
+          "name": "idx_asset_type",
+          "columns": [
+            {
+              "expression": "asset_type_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "with": {},
+          "method": "btree",
+          "concurrently": false
+        }
+      },
+      "foreignKeys": {
+        "asset_asset_type_id_asset_type_id_fk": {
+          "name": "asset_asset_type_id_asset_type_id_fk",
+          "tableFrom": "asset",
+          "columnsFrom": [
+            "asset_type_id"
+          ],
+          "tableTo": "asset_type",
+          "columnsTo": [
+            "id"
+          ],
+          "onUpdate": "no action",
+          "onDelete": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "asset_condition_check": {
+          "name": "asset_condition_check",
+          "value": "\"asset\".\"condition\" IN ('good','fair','poor','critical','unknown')"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.asset_contact": {
+      "name": "asset_contact",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "asset_ref": {
+          "name": "asset_ref",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "role": {
+          "name": "role",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "phone": {
+          "name": "phone",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "email": {
+          "name": "email",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "is_public": {
+          "name": "is_public",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false,
+          "default": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "asset_contact_asset_ref_asset_ref_fk": {
+          "name": "asset_contact_asset_ref_asset_ref_fk",
+          "tableFrom": "asset_contact",
+          "columnsFrom": [
+            "asset_ref"
+          ],
+          "tableTo": "asset",
+          "columnsTo": [
+            "ref"
+          ],
+          "onUpdate": "no action",
+          "onDelete": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.asset_type": {
+      "name": "asset_type",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "label": {
+          "name": "label",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "osm_tags": {
+          "name": "osm_tags",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "icon": {
+          "name": "icon",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "inspection_form": {
+          "name": "inspection_form",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.inspection": {
+      "name": "inspection",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "asset_ref": {
+          "name": "asset_ref",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "inspected_at": {
+          "name": "inspected_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "inspector": {
+          "name": "inspector",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "condition": {
+          "name": "condition",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "notes": {
+          "name": "notes",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "kobo_submission": {
+          "name": "kobo_submission",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "inspection_asset_ref_asset_ref_fk": {
+          "name": "inspection_asset_ref_asset_ref_fk",
+          "tableFrom": "inspection",
+          "columnsFrom": [
+            "asset_ref"
+          ],
+          "tableTo": "asset",
+          "columnsTo": [
+            "ref"
+          ],
+          "onUpdate": "no action",
+          "onDelete": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "inspection_condition_check": {
+          "name": "inspection_condition_check",
+          "value": "\"inspection\".\"condition\" IN ('good','fair','poor','critical')"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.photo": {
+      "name": "photo",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "asset_ref": {
+          "name": "asset_ref",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "inspection_id": {
+          "name": "inspection_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "storage_path": {
+          "name": "storage_path",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "caption": {
+          "name": "caption",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "taken_at": {
+          "name": "taken_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "photo_asset_ref_asset_ref_fk": {
+          "name": "photo_asset_ref_asset_ref_fk",
+          "tableFrom": "photo",
+          "columnsFrom": [
+            "asset_ref"
+          ],
+          "tableTo": "asset",
+          "columnsTo": [
+            "ref"
+          ],
+          "onUpdate": "no action",
+          "onDelete": "no action"
+        },
+        "photo_inspection_id_inspection_id_fk": {
+          "name": "photo_inspection_id_inspection_id_fk",
+          "tableFrom": "photo",
+          "columnsFrom": [
+            "inspection_id"
+          ],
+          "tableTo": "inspection",
+          "columnsTo": [
+            "id"
+          ],
+          "onUpdate": "no action",
+          "onDelete": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    }
+  },
+  "enums": {},
+  "schemas": {},
+  "views": {},
+  "sequences": {},
+  "roles": {},
+  "policies": {},
+  "_meta": {
+    "columns": {},
+    "schemas": {},
+    "tables": {}
+  }
+}

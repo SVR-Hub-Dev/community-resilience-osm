@@ -7,3 +7,9 @@ bun.lockb
 
 # Miscellaneous
 /static/
+
+# Drizzle Kit auto-generated snapshots — rewritten on every `db:generate`
+drizzle/meta/
+
+# Wrangler-generated Worker binding types
+worker-configuration.d.ts

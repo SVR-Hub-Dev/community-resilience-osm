@@ -14,7 +14,11 @@
 		"format": "prettier --write .",
 		"test:unit": "vitest",
 		"test": "npm run test:unit -- --run",
-		"gen": "wrangler types"
+		"gen": "wrangler types",
+		"db:generate": "drizzle-kit generate",
+		"db:migrate": "drizzle-kit migrate",
+		"db:push": "drizzle-kit push",
+		"db:seed": "tsx src/lib/server/seed.ts"
 	},
 	"devDependencies": {
 		"@eslint/compat": "^2.0.4",
@@ -25,6 +29,7 @@
 		"@tailwindcss/vite": "^4.2.2",
 		"@types/node": "^24",
 		"@vitest/browser-playwright": "^4.1.3",
+		"dotenv": "^17.4.2",
 		"drizzle-kit": "^0.31.10",
 		"eslint": "^10.2.0",
 		"eslint-config-prettier": "^10.1.8",
@@ -37,6 +42,7 @@
 		"svelte": "^5.55.2",
 		"svelte-check": "^4.4.6",
 		"tailwindcss": "^4.2.2",
+		"tsx": "^4.21.0",
 		"typescript": "^6.0.2",
 		"typescript-eslint": "^8.58.1",
 		"vite": "^8.0.7",
