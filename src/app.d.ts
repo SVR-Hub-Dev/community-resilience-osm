@@ -14,6 +14,21 @@ declare global {
 		// interface PageData {}
 		// interface PageState {}
 	}
+
+	// `wrangler types` regenerates Cloudflare.Env from .dev.vars, which means
+	// any secret a developer hasn't yet copied into their local .dev.vars
+	// disappears from the typed Env. The R2 S3-signing secrets (.dev.vars.example
+	// documents them) are required at runtime by getPresignedPhotoUrl; declare
+	// them here so the types are stable regardless of local .dev.vars state.
+	// Interface merging is safe — once they appear in worker-configuration.d.ts
+	// the duplicate declarations have identical types.
+	namespace Cloudflare {
+		interface Env {
+			R2_ACCOUNT_ID: string;
+			R2_ACCESS_KEY_ID: string;
+			R2_SECRET_ACCESS_KEY: string;
+		}
+	}
 }
 
 export {};
